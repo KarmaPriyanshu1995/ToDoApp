@@ -15,15 +15,28 @@ const tasksSlice = createSlice({
       }
       state.tasksByUser[userId].push(task);
     },
-    TaskIsCompleted(state,action){
-      // console.log("Response From Slice",action)
-      const {userId}=action.payload;
-      const taskIndex = state.tasksByUser[userId]?.findIndex(task => task.id );
-      console.log("Response From Slice",state.tasksByUser[userId])
-      if (taskIndex !== -1) {
-        state.tasksByUser[userId][taskIndex].isCompleted = !state.tasksByUser[userId][taskIndex].isCompleted;
+    TaskIsCompleted(state, action) {
+      const { userId, taskIndex } = action.payload;
+      console.log("userTasksuserTasksuserTasksuserTasksuserTasks",userId)
+      if (!userId || taskIndex === undefined || taskIndex === null) {
+        console.error("Invalid userId or taskIndex");
+        return;
       }
-    },
+    
+      const userTasks = state.tasksByUser[userId];
+   
+      if (!userTasks || taskIndex >= userTasks.length || taskIndex < 0) {
+        console.error("Invalid task index or user tasks not found");
+        return;
+      }
+    
+      console.log("Response From Slice", taskIndex);
+    
+      if (taskIndex !== -1) {
+        userTasks[taskIndex].isCompleted = !userTasks[taskIndex].isCompleted;
+      }
+    }
+    
     // setUserTasks(state, action) {
     //   const { userId, tasks } = action.payload;
     //   state.tasksByUser[userId] = tasks;

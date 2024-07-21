@@ -32,7 +32,6 @@ const HomeScreen = () => {
   const [priority, setPriority] = useState('Low');
   const signupData = useSelector(state => state.signUp.users);
   const user = signupData.find(user => user.email);
-  console.log(" const userId = user ? user.id : null; ",tasks)
   const userId = user ? user.email : null; 
   
   const tasksByUser = useSelector((state) => state.task);
@@ -40,9 +39,6 @@ const HomeScreen = () => {
   
   const shyamTasks = taskCollection[userId];
   const [tasks, setTasks] = useState(shyamTasks || []);
-  console.log("==[][][][][]==",tasks)
-  console.log("==[shyamTasks][shyamTasks][shyamTasks][][]==",shyamTasks)
-  console.log("==[ramTasks][ramTasks][ramTasks][][]==",signupData)
   
  
   
@@ -67,15 +63,17 @@ const HomeScreen = () => {
   };
   
   
-  const completeTask = (taskId) => {
-    const task = tasks.find((task) => task.id === taskId);
-    setCompletedTasks([...completedTasks, task]);
-    setTasks(tasks.filter((task) => task.id !== taskId));
+  const completeTask = (taskIndex) => {
+    const task = tasks[taskIndex];
+    const temp = { ...task };
+    setCompletedTasks([...completedTasks, temp]);
+    setTasks(tasks.filter((_, index) => index !== taskIndex));
+  
     const userId = user ? user.email : null;
-  if (userId) {
-    dispatch(TaskIsCompleted(userId,taskId));
-  }
-  console.log("JSJJSJSJSJSJSJSJJSJSJSJ",userId,taskId)
+  
+    if (userId) {
+      dispatch(TaskIsCompleted({ userId, taskIndex }));
+    }
   };
 
   const deleteTask = (taskId) => {
@@ -139,11 +137,11 @@ const HomeScreen = () => {
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item,index }) => (
           <View style={styles.task}>
             <TouchableOpacity
               style={styles.checkbox}
-              onPress={() => completeTask(item.id)}
+              onPress={() => completeTask(index)}
             >
 
               <Image source={IMAGES.UNCHECK} style={styles.checkImage} />

@@ -94,7 +94,7 @@ const Login = () => {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
-        <CustomHeader headerTitle="Login Screens" />
+        <CustomHeader headerTitle="Login Screen" />
         <View style={styles.loginContainer}>
           <Formik
             initialValues={{ email: '', password: '' }}
@@ -139,10 +139,10 @@ const Login = () => {
                 )}
               <TouchableOpacity
                 
-                  style={{ paddingBottom: 10 }}
+                  style={{ marginTop:-5,paddingBottom:10 }}
                   onPress={() => forgotRef.current.open()}
                 >
-                  <Text style={{ textAlign: 'right' }}>Forgot Password</Text>
+                  <Text style={{ textAlign: 'right' }}>Forgot Password ?</Text>
                 </TouchableOpacity>
 
                 {error && <Text style={styles.errorText}>{error}</Text>}
