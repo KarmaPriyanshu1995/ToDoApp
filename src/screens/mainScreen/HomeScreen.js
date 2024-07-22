@@ -40,13 +40,6 @@ const HomeScreen = () => {
   const shyamTasks = taskCollection[userId];
   const [tasks, setTasks] = useState(shyamTasks || []);
   
- 
-  
-  useEffect(() => {
-    if (userId) {
-      // setTasks(shyamTasks);
-    }
-  }, [userId, taskCollection]);
 
   const addTask = (values) => {
     const { taskName, date,priority } = values;

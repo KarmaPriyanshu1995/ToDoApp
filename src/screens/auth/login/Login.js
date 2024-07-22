@@ -89,7 +89,13 @@ const Login = () => {
   const forgotRef = useRef();
   const signUpRef = useRef();
   const setPasswordRef = useRef();
+  const passwordRef = useRef();
 
+  const emailRef = useRef();
+  const signUpPasswordRef = useRef();
+  const signUpConfirmPasswordRef = useRef();
+  // const setNewPasswordRef = useRef();
+  const setNewConfirmPasswordRef = useRef();
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -120,6 +126,9 @@ const Login = () => {
                   onBlur={handleBlur('email')}
                   value={values.email}
                   keyboardType="email-address"
+                  onSubmitEditing={() => {
+                    passwordRef.current.focus();
+                  }}
                 />
                 {errors.email && touched.email && (
                   <Text style={styles.errorText}>{errors.email}</Text>
@@ -132,6 +141,7 @@ const Login = () => {
                   onChangeText={handleChange('password')}
                   onBlur={handleBlur('password')}
                   value={values.password}
+                  ref={passwordRef}
                   secureTextEntry
                 />
                 {errors.password && touched.password && (
@@ -239,6 +249,9 @@ const Login = () => {
                           onChangeText={handleChange('name')}
                           onBlur={handleBlur('name')}
                           value={values.name}
+                          onSubmitEditing={() => {
+                            emailRef.current.focus();
+                          }}
                         />
                         {errors.name && touched.name && (
                           <Text style={styles.errorText}>{errors.name}</Text>
@@ -247,6 +260,10 @@ const Login = () => {
                           name="email"
                           placeholderName="Email Address"
                           style={styles.textInput}
+                          ref={emailRef}
+                          onSubmitEditing={() => {
+                            signUpPasswordRef.current.focus();
+                          }}
                           onChangeText={handleChange('email')}
                           onBlur={handleBlur('email')}
                           value={values.email}
@@ -262,6 +279,10 @@ const Login = () => {
                           name="password"
                           placeholderName="Password"
                           style={styles.textInput}
+                          ref={signUpPasswordRef}
+                          onSubmitEditing={() => {
+                            signUpConfirmPasswordRef.current.focus();
+                          }}
                           onChangeText={handleChange('password')}
                           onBlur={handleBlur('password')}
                           value={values.password}
@@ -274,6 +295,7 @@ const Login = () => {
                           name="confirmPassword"
                           placeholderName="Confirm Password"
                           style={styles.textInput}
+                          ref={signUpConfirmPasswordRef}
                           onChangeText={handleChange('confirmPassword')}
                           onBlur={handleBlur('confirmPassword')}
                           value={values.confirmPassword}
@@ -316,6 +338,7 @@ const Login = () => {
                         placeholderName="New Password"
                         style={styles.input}
                         onChangeText={handleChange('password')}
+                        onSubmitEditing={()=>setNewConfirmPasswordRef.current.focus()}
                         onBlur={handleBlur('password')}
                         value={values.password}
                         secureTextEntry
@@ -327,6 +350,7 @@ const Login = () => {
                         name="confirmPassword"
                         placeholderName="Confirm Password"
                         style={styles.input}
+                        ref={setNewConfirmPasswordRef}
                         onChangeText={handleChange('confirmPassword')}
                         onBlur={handleBlur('confirmPassword')}
                         value={values.confirmPassword}
