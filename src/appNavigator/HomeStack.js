@@ -5,16 +5,15 @@ import HomeScreen from '../screens/mainScreen/HomeScreen'
 import TaskScreen from '../screens/mainScreen/TaskScreen'
 const Stack = createStackNavigator();
 
-const AppNavigator = () => {
+const HomeStack = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="ToDo">
-        
+      <Stack.Navigator  screenOptions={{
+        headerShown: false
+      }}>
         <Stack.Screen name="ToDo" component={HomeScreen} />
         <Stack.Screen name="AddTask" component={TaskScreen} />
       </Stack.Navigator>
-    </NavigationContainer>
   );
 };
 
-export default AppNavigator;
+export default HomeStack;

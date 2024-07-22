@@ -1,50 +1,88 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import InputHandler from '../../../components/inputHandler/InputHandler'; // Adjust the path as per your project structure
-
+import React, { useRef, useState } from 'react';
+import { View, Text,StyleSheet } from 'react-native';
+import InputHandler from '../../../components/inputHandler/InputHandler'; 
+import * as yup from 'yup';
+import CustomHeader from '../../../components/customHeader/CustomHeader';
+import { Formik } from 'formik';
+import {useDispatch } from 'react-redux';
+import CustomButton from '../../../components/customButton/CustomButton';
+import { colors } from '../../../constant/color/Colors';
+import { updatePassword } from '../../../redux/slices/SignUpSlice';
+const newPasswordValidationSchema = yup.object().shape({
+  password: yup.string().min(8, ({ min }) => `Password must be at least ${min} characters`).required('Password is required'),
+  confirmPassword: yup.string().oneOf([yup.ref('password'), null], 'Passwords must match').required('Confirm Password is required'),
+});
 const SetNewPassword = ({ navigation }) => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const dispatch =useDispatch()
   const [error, setError] = useState('');
-
-  const handleNewPassword = () => {
-    if (newPassword.trim() === '') {
+  const [forgotEmail, setForgotEmail] = useState('');
+  const setNewConfirmPasswordRef = useRef();
+  const handleNewPassword = (values) => {
+    if (values.password.trim() === '') {
       setError('New Password is required');
       return;
     }
-    if (confirmPassword.trim() === '') {
+    if (values.confirmPassword.trim() === '') {
       setError('Confirm Password is required');
       return;
     }
-    if (newPassword !== confirmPassword) {
+    if (values.password !== values.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
+    dispatch(updatePassword({ email: forgotEmail, newPassword: values.password }));
+    navigation.navigate("Login")
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Set New Password</Text>
-      <InputHandler
-        name="newPassword"
-        placeholderName="New Password"
-        style={styles.input}
-        onChangeText={setNewPassword}
-        value={newPassword}
-        secureTextEntry
-      />
-      <InputHandler
-        name="confirmPassword"
-        placeholderName="Confirm Password"
-        style={styles.input}
-        onChangeText={setConfirmPassword}
-        value={confirmPassword}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Button onPress={handleNewPassword} title="Set Password" />
-    </View>
+              <View style={styles.forgotMainContainer}>
+                <CustomHeader headerTitle="New Password Screen" />
+                <Formik
+                  initialValues={{
+                    password: '',
+                    confirmPassword: '',
+                  }}
+                  validationSchema={newPasswordValidationSchema}
+                  onSubmit={handleNewPassword}
+                >
+                  {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+                    <View >
+                      <InputHandler
+                        name="password"
+                        placeholderName="New Password"
+                        style={styles.input}
+                        onChangeText={handleChange('password')}
+                        onSubmitEditing={()=>setNewConfirmPasswordRef.current.focus()}
+                        onBlur={handleBlur('password')}
+                        value={values.password}
+                        secureTextEntry
+                      />
+                      {errors.password && touched.password && (
+                        <Text style={styles.errorText}>{errors.password}</Text>
+                      )}
+                      <InputHandler
+                        name="confirmPassword"
+                        placeholderName="Confirm Password"
+                        style={styles.input}
+                        ref={setNewConfirmPasswordRef}
+                        onChangeText={handleChange('confirmPassword')}
+                        onBlur={handleBlur('confirmPassword')}
+                        value={values.confirmPassword}
+                        secureTextEntry
+                      />
+                      {errors.confirmPassword && touched.confirmPassword && (
+                        <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                      )}
+                      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                      <CustomButton
+                        onPress={handleSubmit}
+                        buttonTitle="Set Password"
+                        style={styles.buttonStyle}
+                      />
+                    </View>
+                  )}
+                </Formik>
+              </View>
   );
 };
 
@@ -52,25 +90,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    // alignItems: 'center',
-    paddingHorizontal: 20,
+    marginHorizontal: 15,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  loginContainer: {
+    justifyContent: 'center',
+    marginHorizontal: 20,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+  textInput: {
     marginBottom: 10,
-    width: '100%',
+    marginTop: 10,
+    // paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#cccccc',
+    color: '#2f4f4f',
+  },
+  
+  forgotMainContainer: {
+    marginHorizontal: 20,
+    flex:1,
+    justifyContent:"center",
+    
+  },
+  signUpName: {
+    color: colors.white,
+  },
+  buttonStyle: {
+    backgroundColor: colors.DUTCHWHITE,
+    marginTop: 10,
+    marginBottom: 10,
+    padding: 20
   },
   errorText: {
     color: 'red',
-    marginBottom: 10,
+    marginBottom:8,
   },
 });
 
