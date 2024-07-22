@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -18,6 +18,7 @@ import CustomButton from '../../../components/customButton/CustomButton';
 import { colors } from '../../../constant/color/Colors';
 import CustomBottomSheet from '../../../components/customBottomSheet/CustomBottomSheet';
 import { setSignupData, updatePassword } from '../../../redux/slices/SignUpSlice';
+import AppBottomSheet from '../../../components/customBottomSheet/BottomSheet';
 const loginValidationSchema = yup.object().shape({
   email: yup.string().email('Please enter a valid email').required('Email Address is required'),
   password: yup.string().min(8, ({ min }) => `Enter a valid Password`).required('Password is required'),
@@ -39,6 +40,7 @@ const newPasswordValidationSchema = yup.object().shape({
 
 
 const Login = () => {
+  const bottomShetRef = useRef()
   const dispatch = useDispatch();
   const signupData = useSelector(state => state.signUp.users|| [])
   const user = useSelector(selectUser);
@@ -96,6 +98,16 @@ const Login = () => {
   const signUpConfirmPasswordRef = useRef();
   // const setNewPasswordRef = useRef();
   const setNewConfirmPasswordRef = useRef();
+
+
+  // useEffect(() => {
+  //   setTimeout(() => 
+  //     {
+
+  //       bottomShetRef?.current?.expand()
+  //     }, 1000)
+  // },[])
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -373,6 +385,11 @@ const Login = () => {
           />
         </View>
       </SafeAreaView>
+      {/* <AppBottomSheet
+      ref = {bottomShetRef}
+      >
+        <View style = {{height : 100, backgroundColor: 'pink'}}></View>
+      </AppBottomSheet> */}
     </>
   );
 };
