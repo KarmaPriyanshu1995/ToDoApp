@@ -32,7 +32,7 @@ const signupValidationSchema = yup.object().shape({
     .oneOf([yup.ref('password'), null], 'Passwords must match')
     .required('Confirm Password is required'),
 });
-const Signup = () => {
+const Signup = ({navigation}) => {
   const dispatch = useDispatch();
 
   const emailRef = useRef();
@@ -45,15 +45,15 @@ const Signup = () => {
     const password = values.password.toLowerCase();
     const name = values.name.toLowerCase();
     const signupData = {email, password, name};
-    console.log(signupData, ',.,.,.,.,.,.,.');
+    console.log(signupData);
     const user = signupCommingData.find(user => user.email === email);
 
     if (user) {
       setSameEmailError('This Email Already Exists');
     } else {
-      console.log('signUpDatasignUpDatasignUpData', signupData);
       dispatch(setSignupData(signupData));
       dispatch(login(signupData));
+      navigation.navigate('HomeScreen');
       setSameEmailError('');
     }
   };
@@ -65,6 +65,7 @@ const Signup = () => {
           flexGrow: 1,
           paddingHorizontal: 10,
           justifyContent: 'center',
+          marginHorizontal: 15,
         }}>
         <Formik
           initialValues={{
@@ -96,10 +97,8 @@ const Signup = () => {
                 onSubmitEditing={() => {
                   emailRef.current.focus();
                 }}
+                errorMsg={errors.name && touched.name && errors.name}
               />
-              {errors.name && touched.name && (
-                <Text style={styles.errorText}>{errors.name}</Text>
-              )}
               <InputHandler
                 name="email"
                 placeholderName="Email Address"
@@ -112,10 +111,8 @@ const Signup = () => {
                 onBlur={handleBlur('email')}
                 value={values.email}
                 keyboardType="email-address"
+                errorMsg={errors.email && touched.email && errors.email}
               />
-              {errors.email && touched.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
               {sameEmailError && (
                 <Text style={styles.errorText}>{sameEmailError}</Text>
               )}
@@ -131,10 +128,10 @@ const Signup = () => {
                 onBlur={handleBlur('password')}
                 value={values.password}
                 secureTextEntry
+                errorMsg={
+                  errors.password && touched.password && errors.password
+                }
               />
-              {errors.password && touched.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
               <InputHandler
                 name="confirmPassword"
                 placeholderName="Confirm Password"
@@ -144,10 +141,12 @@ const Signup = () => {
                 onBlur={handleBlur('confirmPassword')}
                 value={values.confirmPassword}
                 secureTextEntry
+                errorMsg={
+                  errors.confirmPassword &&
+                  touched.confirmPassword &&
+                  errors.confirmPassword
+                }
               />
-              {errors.confirmPassword && touched.confirmPassword && (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-              )}
               <CustomButton
                 buttonTitle="Signup"
                 style={styles.buttonStyle}
@@ -172,14 +171,6 @@ const styles = StyleSheet.create({
   loginContainer: {
     justifyContent: 'center',
     marginHorizontal: 20,
-  },
-  textInput: {
-    // marginBottom: 10,
-    // marginTop: 10,
-    // paddingVertical: 15,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#cccccc',
-    // color: '#2f4f4f',
   },
   forgotMainContainer: {
     marginHorizontal: 20,

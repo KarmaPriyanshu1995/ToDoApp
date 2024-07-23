@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,69 +7,53 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  Modal,
   Image,
 } from 'react-native';
-import { Formik } from 'formik';
+import {Formik} from 'formik';
 import * as Yup from 'yup';
 import CustomButton from '../../components/customButton/CustomButton';
 import InputHandler from '../../components/inputHandler/InputHandler';
-import { IMAGES } from '../../constant/image/Image';
-import { colors } from '../../constant/color/Colors';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout, selectUser } from '../../redux/slices/LoginSlice';
-import { signOut } from '../../redux/slices/SignUpSlice';
-import DatePicker from 'react-native-date-picker'
-import { addTaskData, TaskIsCompleted } from '../../redux/slices/TaskSlice';
+import {IMAGES} from '../../constant/image/Image';
+import {colors} from '../../constant/color/Colors';
+import {useDispatch, useSelector} from 'react-redux';
+import {logout, selectUser} from '../../redux/slices/LoginSlice';
+import {signOut} from '../../redux/slices/SignUpSlice';
+import DatePicker from 'react-native-date-picker';
+import {addTaskData, TaskIsCompleted} from '../../redux/slices/TaskSlice';
+import AppBottomSheet from '../../components/customBottomSheet/BottomSheet';
+import CustomTaskCard from '../../components/customTaskCards/CustomTaskCard';
 const HomeScreen = () => {
   const dispatch = useDispatch();
-  const userCompleted = useSelector((state) => state.task.tasksByUser);
-  console.log(userCompleted)
-  
-  const [completedTasks, setCompletedTasks] = useState([]);
+  const bottomShetRef = useRef();
+  // const [completedTasks, setCompletedTasks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
   const [priority, setPriority] = useState('Low');
   const signupData = useSelector(state => state.signUp.users);
+
   const user = signupData.find(user => user.email);
-  const userId = user ? user.email : null; 
-  
-  const tasksByUser = useSelector((state) => state.task);
+  console.log(signupData, 'acchathikha');
+  const userId = user ? user.email : null;
+
+  const tasksByUser = useSelector(state => state.task);
   const taskCollection = tasksByUser.tasksByUser;
-  
+
   const shyamTasks = taskCollection[userId];
   const [tasks, setTasks] = useState(shyamTasks || []);
-  
 
-  const addTask = (values) => {
-    const { taskName, date,priority } = values;
-      const newTask = {
-        id: Date.now().toString(),
-        text: taskName,
-        priority,
-        date,
-      };
-      setTasks([...tasks, newTask]);
-      dispatch(addTaskData({ userId, task: newTask }));
-      setModalVisible(false);
-   
-  };
-  
-  
-  const completeTask = (taskIndex) => {
+  const completeTask = taskIndex => {
     const task = tasks[taskIndex];
-    const temp = { ...task };
+    const temp = {...task};
     setCompletedTasks([...completedTasks, temp]);
     setTasks(tasks.filter((_, index) => index !== taskIndex));
-  
+
     const userId = user ? user.email : null;
-  
+
     if (userId) {
-      dispatch(TaskIsCompleted({ userId, taskIndex }));
+      dispatch(TaskIsCompleted({userId, taskIndex}));
     }
   };
 
-  const deleteTask = (taskId) => {
+  const deleteTask = taskId => {
     Alert.alert(
       'Delete Task',
       'Are you sure you want to delete this task?',
@@ -81,44 +65,114 @@ const HomeScreen = () => {
         {
           text: 'Yes',
           onPress: () => {
-            setTasks(tasks.filter((task) => task.id !== taskId));
+            setTasks(tasks.filter(task => task.id !== taskId));
           },
         },
       ],
-      { cancelable: true }
+      {cancelable: true},
     );
   };
 
-  const setYourPriority = (setFieldValue) => {
+  const setYourPriority = setFieldValue => {
     Alert.alert(
       'Set Priority',
       'Select Priority',
       [
-        { text: 'High', onPress: () => setFieldValue('priority', 'High') },
-        { text: 'Medium', onPress: () => setFieldValue('priority', 'Medium') },
-        { text: 'Low', onPress: () => setFieldValue('priority', 'Low') },
+        {text: 'High', onPress: () => setFieldValue('priority', 'High')},
+        {text: 'Medium', onPress: () => setFieldValue('priority', 'Medium')},
+        {text: 'Low', onPress: () => setFieldValue('priority', 'Low')},
       ],
-      { cancelable: true }
+      {cancelable: true},
     );
   };
 
-  const filteredTasks = tasks.filter((task) =>
-    task.text.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTasks = tasks.filter(task =>
+    task.text.toLowerCase().includes(searchQuery.toLowerCase()),
   );
   const handleLogout = () => {
     dispatch(signOut({userId}));
     dispatch(logout());
-    
   };
-  const [date, setDate] = useState(new Date())
-  const [open, setOpen] = useState(false)
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
 
-  
-  
+  const currUser = useSelector(selectUser);
+  const allUserTasks = useSelector(state => state?.task?.tasksByUser);
+
+  console.log('allUserTasks', JSON.stringify(allUserTasks, null, 2));
+
+  const currUserTasks = allUserTasks[currUser?.email];
+  const pendingTasks = currUserTasks?.filter(
+    task => task?.isCompleted == false,
+  );
+  const completedTasks = currUserTasks?.filter(
+    task => task?.isCompleted == true,
+  );
+
+  const addTask = values => {
+    let userEmail = currUser?.email;
+    const {taskName, date, priority} = values;
+    const newTask = {
+      id: Date.now().toString(),
+      text: taskName,
+      priority,
+      date,
+      isCompleted: false,
+    };
+    let temp = {};
+
+    if (allUserTasks?.[userEmail] !== undefined) {
+      temp = {
+        ...allUserTasks,
+        [userEmail]: [...allUserTasks[userEmail], newTask],
+      };
+    } else {
+      temp = {
+        ...allUserTasks,
+        [userEmail]: [newTask],
+      };
+    }
+    dispatch(addTaskData(temp));
+    bottomShetRef.current.close();
+  };
+
+  const toggleTaskCompletion = item => {
+    try {
+      let userEmail = currUser?.email;
+
+      let updatedTask = currUserTasks?.map(task => {
+        if (task?.id === item?.id) {
+          return {
+            ...task,
+            isCompleted: !task?.isCompleted,
+          };
+        }
+        return task;
+      });
+      let temp = {
+        ...allUserTasks,
+        [userEmail]: updatedTask,
+      };
+
+      dispatch(addTaskData(temp));
+    } catch (err) {
+      console.log('toggleTaskCompletion err', err);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: "red", marginVertical: 20, justifyContent: "flex-end", alignSelf: "flex-end", padding: 10, borderRadius: 5 }}>
-        <Text style={{ color: "white", fontWeight: "bold" }}>LogOut</Text>
+      <TouchableOpacity
+        onPress={handleLogout}
+        style={{
+          backgroundColor: 'red',
+          marginVertical: 20,
+          justifyContent: 'flex-end',
+          alignSelf: 'flex-end',
+          padding: 10,
+          borderRadius: 5,
+        }}>
+        <Text style={{color: 'white', fontWeight: 'bold'}}>LogOut</Text>
       </TouchableOpacity>
       <Text style={styles.header}>ToDo App</Text>
       <TextInput
@@ -128,73 +182,57 @@ const HomeScreen = () => {
         onChangeText={setSearchQuery}
       />
       <FlatList
-        data={filteredTasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item,index }) => (
-          <View style={styles.task}>
-            <TouchableOpacity
-              style={styles.checkbox}
-              onPress={() => completeTask(index)}
-            >
-
-              <Image source={IMAGES.UNCHECK} style={styles.checkImage} />
-            </TouchableOpacity>
-            <View style={{ marginBottom: 10 }}>
-
-              <Text style={styles.taskText}>
-                {item.text} - {item.priority} - {item.date}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteTask(item.id)}
-            >
-              <Text>Delete</Text>
-            </TouchableOpacity>
-          </View>
+        data={pendingTasks}
+        keyExtractor={item => item.id}
+        renderItem={({item, index}) => (
+          <CustomTaskCard
+            item={item}
+            onComplete={() => toggleTaskCompletion(item)}
+            onDelete={() => () => deleteTask(item.id)}
+          />
         )}
         ListHeaderComponent={
           <Text style={styles.taskListHeader}>Today's Tasks</Text>
         }
       />
-      {completedTasks.length > 0 && (
-        <FlatList
-          data={completedTasks}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.task}>
-              <Text style={styles.taskText}>{item.text}</Text>
-            </View>
-          )}
-          ListHeaderComponent={
-            <Text style={styles.taskListHeader}>Completed Tasks</Text>
-          }
-        />
-      )}
+
+      <FlatList
+        data={completedTasks || []}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
+          <CustomTaskCard
+            item={item}
+            onComplete={() => toggleTaskCompletion(item)}
+            onDelete={() => () => deleteTask(item.id)}
+          />
+        )}
+        ListHeaderComponent={
+          <Text style={styles.taskListHeader}>Completed Tasks</Text>
+        }
+      />
       <TouchableOpacity
         style={styles.floatingButton}
-        onPress={() => setModalVisible(true)}
-      >
+        onPress={() => bottomShetRef?.current?.expand()}>
         <Text style={styles.addTask}>Add Task</Text>
       </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(!modalVisible)}
-      >
+      <AppBottomSheet ref={bottomShetRef}>
         <View style={styles.modalView}>
           <Text style={styles.modalText}>Add New Task</Text>
           <Formik
-            initialValues={{ taskName: '', date: '', priority: 'Low' }}
-            onSubmit={(values) =>  addTask(values)}
+            initialValues={{taskName: '', date: '', priority: 'Low'}}
+            onSubmit={values => addTask(values)}
             validationSchema={Yup.object().shape({
               taskName: Yup.string().required('Task Name is required'),
               date: Yup.string().required('Date is required'),
-            })}
-          >
-            {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+            })}>
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              errors,
+              touched,
+            }) => (
               <>
                 <InputHandler
                   label="Task Name"
@@ -202,51 +240,51 @@ const HomeScreen = () => {
                   onChangeText={handleChange('taskName')}
                   onBlur={handleBlur('taskName')}
                   value={values.taskName}
+                  errorMsg={
+                    errors.taskName && touched.taskName && errors.taskName
+                  }
                 />
-                {touched.taskName && errors.taskName && (
-                  <Text style={styles.errorText}>{errors.taskName}</Text>
-                )}
-
                 <TouchableOpacity
                   style={styles.input}
-                  onPress={() =>
-                   
-                    setYourPriority(handleChange)
-                  }
-                
-                >
+                  onPress={() => setYourPriority(handleChange)}>
                   <Text>{priority}</Text>
                 </TouchableOpacity>
-              <View style={styles.calanderStyles}>
-              <InputHandler
-                  label="Date"
-                  onChangeText={handleChange('date')}
-                  onBlur={handleBlur('date')}
-                  value={values.date || (date ? date.toLocaleDateString() : '')}
-                 style={{width:220,color:"black"}}
-                />
-                  <TouchableOpacity onPress={() => setOpen(true)} style={{justifyContent:"center",left:5}}>
-               <Image source={IMAGES.CALANDER} style={{height:20,width:20}}/>
-               </TouchableOpacity>
-              </View>
-               
-                  <DatePicker
-                    modal
-                    minimumDate={new Date()}
-                    open={open}
-                    date={date}
-                    onConfirm={(selectedDate) => {
-                      setOpen(false);
-                setDate(selectedDate);
-                const formattedDate = selectedDate.toLocaleDateString();
-                handleChange('date')(formattedDate);
-                    }}
-                    onCancel={() => {
-                      setOpen(false)
-                    }}
+                <View style={styles.calanderStyles}>
+                  <InputHandler
+                    label="Date"
+                    onChangeText={handleChange('date')}
+                    onBlur={handleBlur('date')}
+                    value={
+                      values.date || (date ? date.toLocaleDateString() : '')
+                    }
+                    style={{width: 330, color: 'black'}}
                   />
+                  <TouchableOpacity
+                    onPress={() => setOpen(true)}
+                    style={{justifyContent: 'center', left: 5}}>
+                    <Image
+                      source={IMAGES.CALANDER}
+                      style={{height: 20, width: 20}}
+                    />
+                  </TouchableOpacity>
+                </View>
 
-                
+                <DatePicker
+                  modal
+                  minimumDate={new Date()}
+                  open={open}
+                  date={date}
+                  onConfirm={selectedDate => {
+                    setOpen(false);
+                    setDate(selectedDate);
+                    const formattedDate = selectedDate.toLocaleDateString();
+                    handleChange('date')(formattedDate);
+                  }}
+                  onCancel={() => {
+                    setOpen(false);
+                  }}
+                />
+
                 {touched.date && errors.date && (
                   <Text style={styles.errorText}>{errors.date}</Text>
                 )}
@@ -256,16 +294,11 @@ const HomeScreen = () => {
                   buttonTitle="Add Task"
                   onPress={handleSubmit}
                 />
-                <CustomButton
-                  style={styles.buttonStyle}
-                  buttonTitle="Cancel"
-                  onPress={() => setModalVisible(false)}
-                />
               </>
             )}
           </Formik>
         </View>
-      </Modal>
+      </AppBottomSheet>
     </View>
   );
 };
@@ -275,7 +308,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-
   },
   header: {
     fontSize: 24,
@@ -302,7 +334,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: 'black',
     borderWidth: 1,
-    margin: 10
+    margin: 10,
   },
   checkbox: {
     marginRight: 10,
@@ -327,17 +359,6 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   modalText: {
     marginBottom: 15,
@@ -368,13 +389,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.DUTCHWHITE,
     paddingVertical: 10,
     borderRadius: 4,
-    marginBottom: 6
+    marginBottom: 6,
   },
-  calanderStyles:{
-    flexDirection:"row",
-   
-   
-  }
+  calanderStyles: {
+    flexDirection: 'row',
+  },
 });
 
 export default HomeScreen;

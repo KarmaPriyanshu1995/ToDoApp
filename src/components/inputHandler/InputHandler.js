@@ -1,5 +1,6 @@
 import {StyleSheet, Text, TextInput, View} from 'react-native';
 import React from 'react';
+import {colors} from '../../constant/color/Colors';
 
 const InputHandler = React.forwardRef(
   (
@@ -13,6 +14,8 @@ const InputHandler = React.forwardRef(
       keyboardType,
       onBlur,
       secureTextEntry,
+      errorMsg,
+      autoFocus = false,
     },
     ref,
   ) => {
@@ -29,7 +32,13 @@ const InputHandler = React.forwardRef(
           keyboardType={keyboardType}
           secureTextEntry={secureTextEntry}
           onSubmitEditing={onSubmitEditing}
+          autoFocus={autoFocus}
         />
+        {errorMsg ? (
+          <View style={styles.errorMsgContainor}>
+            <Text style={styles.errorText}>{errorMsg}</Text>
+          </View>
+        ) : null}
       </View>
     );
   },
@@ -41,10 +50,15 @@ const styles = StyleSheet.create({
   textInput: {
     height: 40,
     width: '100%',
-    backgroundColor: 'white',
-    borderColor: 'grey',
-    borderWidth: 1,
+    backgroundColor: colors.WHITE,
     borderRadius: 5,
-    // marginBottom:5
+    paddingHorizontal: 15,
+    elevation: 5,
+  },
+  errorText: {
+    color: 'red',
+  },
+  errorMsgContainor: {
+    marginVertical: 3,
   },
 });

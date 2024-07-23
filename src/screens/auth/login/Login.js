@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -6,40 +6,33 @@ import {
   Text,
   StatusBar,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native';
-import { Formik } from 'formik';
+import {Formik} from 'formik';
 import * as yup from 'yup';
 import InputHandler from '../../../components/inputHandler/InputHandler';
-import { useDispatch, useSelector } from 'react-redux';
-import { login, selectUser } from '../../../redux/slices/LoginSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {login, selectUser} from '../../../redux/slices/LoginSlice';
 import CustomHeader from '../../../components/customHeader/CustomHeader';
 import CustomButton from '../../../components/customButton/CustomButton';
-import { colors } from '../../../constant/color/Colors';
-import CustomBottomSheet from '../../../components/customBottomSheet/CustomBottomSheet';
-import { setSignupData, updatePassword } from '../../../redux/slices/SignUpSlice';
-import AppBottomSheet from '../../../components/customBottomSheet/BottomSheet';
+import {colors} from '../../../constant/color/Colors';
 const loginValidationSchema = yup.object().shape({
-  email: yup.string().email('Please enter a valid email').required('Email Address is required'),
-  password: yup.string().min(8, ({ min }) => `Enter a valid Password`).required('Password is required'),
+  email: yup
+    .string()
+    .email('Please enter a valid email')
+    .required('Email Address is required'),
+  password: yup
+    .string()
+    .min(8, ({min}) => `Enter a valid Password`)
+    .required('Password is required'),
 });
 
 const Login = ({navigation}) => {
   const dispatch = useDispatch();
-  const signupCommingData = useSelector(state => state.signUp.users|| [])
+  const signupCommingData = useSelector(state => state.signUp.users || []);
   const user = useSelector(selectUser);
 
   const [error, setError] = useState('');
   const passwordRef = useRef();
-
-  // useEffect(() => {
-  //   setTimeout(() => 
-  //     {
-
-  //       bottomShetRef?.current?.expand()
-  //     }, 1000)
-  // },[])
-
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -47,39 +40,47 @@ const Login = ({navigation}) => {
         <CustomHeader headerTitle="Login Screen" />
         <View style={styles.loginContainer}>
           <Formik
-            initialValues={{ email: '', password: '' }}
+            initialValues={{email: '', password: ''}}
             validationSchema={loginValidationSchema}
-            onSubmit={(values) => {
-              console.log({values})
-              const user = signupCommingData.find(user => user.email === values.email.toLowerCase() && user.password === values.password);
-              console.log('condad', user)
+            onSubmit={values => {
+              console.log({values});
+              const user = signupCommingData.find(
+                user =>
+                  user.email === values.email.toLowerCase() &&
+                  user.password === values.password,
+              );
+              console.log('condad', user);
               if (user) {
                 dispatch(login(user));
-                navigation.navigate("HomeScreen")
+                navigation.navigate('HomeScreen');
               } else {
                 setError('Invalid login credentials');
               }
-            }}
-          >
-            {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+            }}>
+            {({
+              handleChange,
+              handleBlur,
+              handleSubmit,
+              values,
+              errors,
+              touched,
+            }) => (
               <>
-               <View style={{marginBottom:15}}>
-               <InputHandler
-                  name="email"
-                  placeholderName="Email Address"
-                  onChangeText={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  value={values.email}
-                  keyboardType="email-address"
-                  onSubmitEditing={() => {
-                    passwordRef.current.focus();
-                  }}
-                />
-                {errors.email && touched.email && (
-                  <Text style={styles.errorText}>{errors.email}</Text>
-                )}
-               </View>
-              
+                <View>
+                  <InputHandler
+                    name="email"
+                    placeholderName="Email Address"
+                    onChangeText={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    value={values.email}
+                    keyboardType="email-address"
+                    onSubmitEditing={() => {
+                      passwordRef.current.focus();
+                    }}
+                    errorMsg={errors.email && touched.email && errors.email}
+                  />
+                </View>
+
                 <InputHandler
                   name="password"
                   placeholderName="Password"
@@ -88,16 +89,21 @@ const Login = ({navigation}) => {
                   value={values.password}
                   ref={passwordRef}
                   secureTextEntry
+                  errorMsg={
+                    errors.password && touched.password && errors.password
+                  }
                 />
-                {errors.password && touched.password && (
-                  <Text style={styles.errorText}>{errors.password}</Text>
-                )}
-              <TouchableOpacity
-                
-                  style={{ marginTop:-5,paddingBottom:10 }}
-                  onPress={() => navigation.navigate("ForgotPassword")}
-                >
-                  <Text style={{ textAlign: 'right' }}>Forgot Password ?</Text>
+                <TouchableOpacity
+                  style={{marginTop: -5, paddingBottom: 10}}
+                  onPress={() => navigation.navigate('ForgotPassword')}>
+                  <Text
+                    style={{
+                      textAlign: 'right',
+                      color: colors.BUTTONTEXT,
+                      fontWeight: '400',
+                    }}>
+                    Forgot Password ?
+                  </Text>
                 </TouchableOpacity>
 
                 {error && <Text style={styles.errorText}>{error}</Text>}
@@ -106,14 +112,22 @@ const Login = ({navigation}) => {
                   style={styles.buttonStyle}
                   onPress={handleSubmit}
                 />
-                <View style={{ alignItems: 'center' }}>
-                  <Text>
+                <View style={{alignItems: 'center'}}>
+                  <Text style={{color: colors.BUTTONTEXT, fontWeight: '600'}}>
                     Don't have an account ?
                     <TouchableOpacity
-                      style={{ paddingTop: 11 }}
-                      onPress={() => {navigation.navigate("Signup")}}
-                    >
-                      <Text style={{ textAlign: 'center', top: 5 }}>Sign Up</Text>
+                      style={{paddingTop: 11}}
+                      onPress={() => {
+                        navigation.navigate('Signup');
+                      }}>
+                      <Text
+                        style={{
+                          textAlign: 'center',
+                          top: 4,
+                          color: 'blue',
+                        }}>
+                        Sign Up
+                      </Text>
                     </TouchableOpacity>
                   </Text>
                 </View>
@@ -176,11 +190,6 @@ const Login = ({navigation}) => {
           /> */}
         </View>
       </SafeAreaView>
-      {/* <AppBottomSheet
-      ref = {bottomShetRef}
-      >
-        <View style = {{height : 100, backgroundColor: 'pink'}}></View>
-      </AppBottomSheet> */}
     </>
   );
 };
@@ -218,10 +227,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.DUTCHWHITE,
     marginTop: 10,
     marginBottom: 10,
-    padding: 20
+    padding: 20,
   },
   errorText: {
     color: 'red',
-    marginBottom:8,
+    marginBottom: 8,
   },
 });

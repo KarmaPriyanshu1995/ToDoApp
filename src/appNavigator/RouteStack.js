@@ -1,8 +1,6 @@
 import * as React from 'react';
 import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import HomeScreen from '../screens/mainScreen/HomeScreen';
-import TaskScreen from '../screens/mainScreen/TaskScreen';
 import AuthStack from './AuthStack';
 import HomeStack from './HomeStack';
 import {useSelector} from 'react-redux';
@@ -11,6 +9,8 @@ const Stack = createStackNavigator();
 
 const RouteStack = () => {
   const user = useSelector(selectUser);
+
+  console.log('useruseruser', user);
   return (
     <NavigationContainer
       theme={{
