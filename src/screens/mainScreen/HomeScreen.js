@@ -25,33 +25,12 @@ import CustomTaskCard from '../../components/customTaskCards/CustomTaskCard';
 const HomeScreen = () => {
   const dispatch = useDispatch();
   const bottomShetRef = useRef();
-  // const [completedTasks, setCompletedTasks] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priority, setPriority] = useState('Low');
-  const signupData = useSelector(state => state.signUp.users);
+  const currUser = useSelector(selectUser);
+  const allUserTasks = useSelector(state => state?.task?.tasksByUser);
 
-  const user = signupData.find(user => user.email);
-  console.log(signupData, 'acchathikha');
-  const userId = user ? user.email : null;
-
-  const tasksByUser = useSelector(state => state.task);
-  const taskCollection = tasksByUser.tasksByUser;
-
-  const shyamTasks = taskCollection[userId];
-  const [tasks, setTasks] = useState(shyamTasks || []);
-
-  const completeTask = taskIndex => {
-    const task = tasks[taskIndex];
-    const temp = {...task};
-    setCompletedTasks([...completedTasks, temp]);
-    setTasks(tasks.filter((_, index) => index !== taskIndex));
-
-    const userId = user ? user.email : null;
-
-    if (userId) {
-      dispatch(TaskIsCompleted({userId, taskIndex}));
-    }
-  };
+  const [priority] = useState('Low');
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
 
   const deleteTask = taskId => {
     Alert.alert(
@@ -86,18 +65,10 @@ const HomeScreen = () => {
     );
   };
 
-  const filteredTasks = tasks.filter(task =>
-    task.text.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
   const handleLogout = () => {
     dispatch(signOut({userId}));
     dispatch(logout());
   };
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
-
-  const currUser = useSelector(selectUser);
-  const allUserTasks = useSelector(state => state?.task?.tasksByUser);
 
   console.log('allUserTasks', JSON.stringify(allUserTasks, null, 2));
 
@@ -175,12 +146,6 @@ const HomeScreen = () => {
         <Text style={{color: 'white', fontWeight: 'bold'}}>LogOut</Text>
       </TouchableOpacity>
       <Text style={styles.header}>ToDo App</Text>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search tasks..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
       <FlatList
         data={pendingTasks}
         keyExtractor={item => item.id}
@@ -209,6 +174,7 @@ const HomeScreen = () => {
         ListHeaderComponent={
           <Text style={styles.taskListHeader}>Completed Tasks</Text>
         }
+        ItemSeparatorComponent={() => <View style={{borderBottomWidth: 1}} />}
       />
       <TouchableOpacity
         style={styles.floatingButton}

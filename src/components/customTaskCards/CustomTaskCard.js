@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 10,
     borderColor: 'black',
-    borderWidth: 1,
+    // borderWidth: 1,
     margin: 10,
   },
   checkbox: {
