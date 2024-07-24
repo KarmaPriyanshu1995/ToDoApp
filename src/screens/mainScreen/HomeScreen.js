@@ -1,13 +1,13 @@
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   FlatList,
   TouchableOpacity,
   Alert,
   Image,
+  TextInput,
 } from 'react-native';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
@@ -19,116 +19,56 @@ import {useDispatch, useSelector} from 'react-redux';
 import {logout, selectUser} from '../../redux/slices/LoginSlice';
 import {signOut} from '../../redux/slices/SignUpSlice';
 import DatePicker from 'react-native-date-picker';
-import {addTaskData, TaskIsCompleted} from '../../redux/slices/TaskSlice';
+import {addTaskData} from '../../redux/slices/TaskSlice';
 import AppBottomSheet from '../../components/customBottomSheet/BottomSheet';
-import CustomTaskCard from '../../components/customTaskCards/CustomTaskCard';
+import CustomTaskList from '../../components/customTaskList/CustomTaskList';
+import AddTaskSheet from './AddTaskSheet';
 const HomeScreen = () => {
   const dispatch = useDispatch();
   const bottomShetRef = useRef();
   const currUser = useSelector(selectUser);
   const allUserTasks = useSelector(state => state?.task?.tasksByUser);
 
-  const [priority] = useState('Low');
-  const [date, setDate] = useState(new Date());
-  const [open, setOpen] = useState(false);
+  const [priority, setPriority] = useState();
 
-  const deleteTask = taskId => {
-    Alert.alert(
-      'Delete Task',
-      'Are you sure you want to delete this task?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Yes',
-          onPress: () => {
-            setTasks(tasks.filter(task => task.id !== taskId));
-          },
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const setYourPriority = setFieldValue => {
-    Alert.alert(
-      'Set Priority',
-      'Select Priority',
-      [
-        {text: 'High', onPress: () => setFieldValue('priority', 'High')},
-        {text: 'Medium', onPress: () => setFieldValue('priority', 'Medium')},
-        {text: 'Low', onPress: () => setFieldValue('priority', 'Low')},
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const handleLogout = () => {
-    dispatch(signOut({userId}));
-    dispatch(logout());
-  };
-
-  console.log('allUserTasks', JSON.stringify(allUserTasks, null, 2));
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const userId = currUser?.email;
   const currUserTasks = allUserTasks[currUser?.email];
   const pendingTasks = currUserTasks?.filter(
-    task => task?.isCompleted == false,
+    task => task?.isCompleted === false,
   );
   const completedTasks = currUserTasks?.filter(
     task => task?.isCompleted == true,
   );
 
-  const addTask = values => {
-    let userEmail = currUser?.email;
-    const {taskName, date, priority} = values;
-    const newTask = {
-      id: Date.now().toString(),
-      text: taskName,
-      priority,
-      date,
-      isCompleted: false,
-    };
-    let temp = {};
-
-    if (allUserTasks?.[userEmail] !== undefined) {
-      temp = {
-        ...allUserTasks,
-        [userEmail]: [...allUserTasks[userEmail], newTask],
-      };
-    } else {
-      temp = {
-        ...allUserTasks,
-        [userEmail]: [newTask],
-      };
-    }
-    dispatch(addTaskData(temp));
-    bottomShetRef.current.close();
+  const handleLogout = () => {
+    dispatch(signOut({userId}));
+    dispatch(logout());
   };
-
-  const toggleTaskCompletion = item => {
-    try {
-      let userEmail = currUser?.email;
-
-      let updatedTask = currUserTasks?.map(task => {
-        if (task?.id === item?.id) {
-          return {
-            ...task,
-            isCompleted: !task?.isCompleted,
-          };
-        }
-        return task;
-      });
-      let temp = {
-        ...allUserTasks,
-        [userEmail]: updatedTask,
+  const filteredTask = useMemo(() => {
+    if (!!searchQuery) {
+      let filteredPendingTask = pendingTasks.filter(item =>
+        item.text
+          ?.replace(/\s/g, '')
+          ?.toLowerCase()
+          .includes(searchQuery?.replace(/\s/g, '').toLowerCase()),
+      );
+      let filteredCompletedTask = completedTasks.filter(item =>
+        item.text
+          ?.replace(/\s/g, '')
+          ?.toLowerCase()
+          .includes(searchQuery?.replace(/\s/g, '').toLowerCase()),
+      );
+      return {
+        pendingTasks: filteredPendingTask,
+        completedTasks: filteredCompletedTask,
       };
-
-      dispatch(addTaskData(temp));
-    } catch (err) {
-      console.log('toggleTaskCompletion err', err);
     }
+    return {pendingTasks, completedTasks};
+  }, [pendingTasks, searchQuery, completedTasks]);
+
+  const renderListHeader = headerName => {
+    return <Text style={styles.taskListHeader}>{headerName}</Text>;
   };
 
   return (
@@ -145,126 +85,28 @@ const HomeScreen = () => {
         }}>
         <Text style={{color: 'white', fontWeight: 'bold'}}>LogOut</Text>
       </TouchableOpacity>
-      <Text style={styles.header}>ToDo App</Text>
-      <FlatList
-        data={pendingTasks}
-        keyExtractor={item => item.id}
-        renderItem={({item, index}) => (
-          <CustomTaskCard
-            item={item}
-            onComplete={() => toggleTaskCompletion(item)}
-            onDelete={() => () => deleteTask(item.id)}
-          />
-        )}
-        ListHeaderComponent={
-          <Text style={styles.taskListHeader}>Today's Tasks</Text>
-        }
-      />
 
-      <FlatList
-        data={completedTasks || []}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <CustomTaskCard
-            item={item}
-            onComplete={() => toggleTaskCompletion(item)}
-            onDelete={() => () => deleteTask(item.id)}
-          />
-        )}
-        ListHeaderComponent={
-          <Text style={styles.taskListHeader}>Completed Tasks</Text>
-        }
-        ItemSeparatorComponent={() => <View style={{borderBottomWidth: 1}} />}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search tasks..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      <Text style={styles.header}>ToDo App</Text>
+      <CustomTaskList
+        headerComponent={() => renderListHeader('Pending Task')}
+        data={filteredTask.pendingTasks || []}
+      />
+      <CustomTaskList
+        headerComponent={() => renderListHeader('Completed Task')}
+        data={filteredTask.completedTasks || []}
       />
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => bottomShetRef?.current?.expand()}>
         <Text style={styles.addTask}>Add Task</Text>
       </TouchableOpacity>
-      <AppBottomSheet ref={bottomShetRef}>
-        <View style={styles.modalView}>
-          <Text style={styles.modalText}>Add New Task</Text>
-          <Formik
-            initialValues={{taskName: '', date: '', priority: 'Low'}}
-            onSubmit={values => addTask(values)}
-            validationSchema={Yup.object().shape({
-              taskName: Yup.string().required('Task Name is required'),
-              date: Yup.string().required('Date is required'),
-            })}>
-            {({
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              values,
-              errors,
-              touched,
-            }) => (
-              <>
-                <InputHandler
-                  label="Task Name"
-                  placeholder="Enter Task Name"
-                  onChangeText={handleChange('taskName')}
-                  onBlur={handleBlur('taskName')}
-                  value={values.taskName}
-                  errorMsg={
-                    errors.taskName && touched.taskName && errors.taskName
-                  }
-                />
-                <TouchableOpacity
-                  style={styles.input}
-                  onPress={() => setYourPriority(handleChange)}>
-                  <Text>{priority}</Text>
-                </TouchableOpacity>
-                <View style={styles.calanderStyles}>
-                  <InputHandler
-                    label="Date"
-                    onChangeText={handleChange('date')}
-                    onBlur={handleBlur('date')}
-                    value={
-                      values.date || (date ? date.toLocaleDateString() : '')
-                    }
-                    style={{width: 330, color: 'black'}}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setOpen(true)}
-                    style={{justifyContent: 'center', left: 5}}>
-                    <Image
-                      source={IMAGES.CALANDER}
-                      style={{height: 20, width: 20}}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <DatePicker
-                  modal
-                  minimumDate={new Date()}
-                  open={open}
-                  date={date}
-                  onConfirm={selectedDate => {
-                    setOpen(false);
-                    setDate(selectedDate);
-                    const formattedDate = selectedDate.toLocaleDateString();
-                    handleChange('date')(formattedDate);
-                  }}
-                  onCancel={() => {
-                    setOpen(false);
-                  }}
-                />
-
-                {touched.date && errors.date && (
-                  <Text style={styles.errorText}>{errors.date}</Text>
-                )}
-
-                <CustomButton
-                  style={styles.buttonStyle}
-                  buttonTitle="Add Task"
-                  onPress={handleSubmit}
-                />
-              </>
-            )}
-          </Formik>
-        </View>
-      </AppBottomSheet>
+      <AddTaskSheet ref={bottomShetRef} />
     </View>
   );
 };
@@ -359,6 +201,18 @@ const styles = StyleSheet.create({
   },
   calanderStyles: {
     flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  textInput: {
+    height: 40,
+    width: '90%',
+    backgroundColor: colors.WHITE,
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    elevation: 5,
+    justifyContent: 'center',
+    // marginBottom: 20,
   },
 });
 

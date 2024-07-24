@@ -5,7 +5,6 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import {IMAGES} from '../../constant/image/Image';
 
 const CustomTaskCard = ({onDelete, item, onComplete}) => {
-  console.log({item});
   return (
     <View style={styles.task}>
       <TouchableOpacity style={styles.checkbox} onPress={onComplete}>

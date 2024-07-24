@@ -9,12 +9,6 @@ const tasksSlice = createSlice({
   initialState,
   reducers: {
     addTaskData(state, action) {
-      // const {userId, task} = action.payload;
-      // console.log(userId, task, 'Slice Data');
-      // if (!state.tasksByUser[userId]) {
-      //   state.tasksByUser[userId] = [];
-      // }
-      // state.tasksByUser[userId].push(task);
       state.tasksByUser = action.payload;
     },
     TaskIsCompleted(state, action) {
